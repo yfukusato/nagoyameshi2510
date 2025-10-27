@@ -10,7 +10,7 @@ phases:
 build:
   commands:
     - echo "Deploying to EC2 via SSM..."
-    - bash -c 'INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=app-server-prod-1a,app-server-prod-1c" --query "Reservations[].Instances[].InstanceID" --output text); echo "Deploying to instances: $INSTANCE_IDS"; aws ssm send-command --instance-ids $INSTANCE_IDS --document-name "AWS-RunShellScript" --comment "Deploy Laravel app to multiple EC2s" --parameters commands=["sudo mkdir -p /var/www/html","sudo rm -rf /var/www/html/*","sudo cp -r ./laravel-nagoyameshi/* /var/www/html","sudo systemctl restart nginx"];'
+    - bash -c 'INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=app-server-prod-1a,app-server-prod-1c" --query "Reservations[].Instances[].InstanceID" --output text); echo "Deploying to instances: $INSTANCE_IDS"; aws ssm send-command --instance-ids $INSTANCE_IDS --document-name "AWS-RunShellScript" --comment "Deploy Laravel app to multiple EC2s" --parameters commands=["sudo mkdir -p /var/www/html","sudo rm -rf /var/www/html/*","sudo cp -r ./nagoyameshi2510/* /var/www/html","sudo systemctl restart nginx"];'
 
 artifacts:
   files:
