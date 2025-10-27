@@ -8,22 +8,22 @@ phases:
       - composer install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
-  commands:
-    - echo "Deploying to EC2 via SSM..."
-    - |
-      INSTANCE_IDS=$(aws ec2 describe-instances \
-        --filters "Name=tag:Name,Values=app-server-prod-1a,app-server-prod-1c" \
-        --query "Reservations[].Instances[].InstanceId" --output text)
-      echo "Deploying to instances: $INSTANCE_IDS"
-      if [ -z "$INSTANCE_IDS" ]; then
-        echo "❌ No instances found. Check tag names or permissions."
-        exit 1
-      fi
-      aws ssm send-command \
-        --instance-ids $INSTANCE_IDS \
-        --document-name "AWS-RunShellScript" \
-        --comment "Deploy Laravel app to multiple EC2s" \
-        --parameters 'commands=["sudo mkdir -p /var/www/html","sudo rm -rf /var/www/html/*","sudo cp -r ./* /var/www/html","sudo systemctl restart nginx"]'
+    commands:
+      - echo "Deploying to EC2 via SSM..."
+      - |
+        INSTANCE_IDS=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=app-server-prod-1a,app-server-prod-1c" \
+          --query "Reservations[].Instances[].InstanceId" --output text)
+        echo "Deploying to instances: $INSTANCE_IDS"
+        if [ -z "$INSTANCE_IDS" ]; then
+          echo "❌ No instances found. Check tag names or permissions."
+          exit 1
+        fi
+        aws ssm send-command \
+          --instance-ids $INSTANCE_IDS \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy Laravel app to multiple EC2s" \
+          --parameters 'commands=["sudo mkdir -p /var/www/html","sudo rm -rf /var/www/html/*","sudo cp -r ./* /var/www/html","sudo systemctl restart nginx"]'
 
 artifacts:
   files:
