@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing dependencies...
+      - dnf install -y amazon-ssm-agent jq
+      - composer install --no-interaction --prefer-dist --optimize-autoloader
+  build:
+    commands:
+      - echo Deploying to EC2 via SSM...
+      - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=app-server-prod-*" --query "Reservations[].Instances[].InstanceId" --output text)
+      - echo "Deploying to instance: $INSTANCE_ID"
+      - aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy Laravel app" \
+          --parameters commands="sudo rm -rf /var/www/html/* && sudo cp -r . /var/www/html && sudo systemctl restart nginx"
