@@ -10,25 +10,18 @@ phases:
 
   build:
     commands:
-      - echo "Deploying via SSH (bastion -> app EC2)..."
-      # Secrets Manager から秘密鍵を取得、改行を復元してPEMとして保存
       - echo "Fetching SSH key from Secrets Manager..."
       - aws secretsmanager get-secret-value --region ap-northeast-1 --secret-id ${SECRET_SSH_KEY_ARN} --query SecretString --output text > /tmp/terraform-key.pem
       - chmod 600 /tmp/terraform-key.pem
-      - head -2 /tmp/terraform-key.pem  #安全確認: BEGIN行が出ればOK
-
-      # 環境変数に各ホスト設定
       - BASTION_HOST=ec2-52-194-104-224.ap-northeast-1.compute.amazonaws.com
       - APP_HOSTS="10.0.2.18"
-
-      # SSH踏み台経由でアプリEC2にデプロイ
+      - echo "Deploying to $APP_HOSTS via bastion $BASTION_HOST"
       - |
         for host in $APP_HOSTS; do
-          echo "Deploying to $host via bastion $BASTION_HOST"
-          ssh -o StrictHostKeyChecking=no -i /tmp/terraform-key.pem -A ec2-user@$BASTION_HOST \
-            "ssh -o StrictHostKeyChecking=no ec2-user@$host '
-              sudo rm -rf /var/www/html/* &&
-              sudo cp -r /codebuild/output/src*/src/* /var/www/html/ &&
-              sudo systemctl restart nginx
-            '"
+          ssh -o StrictHostKeyChecking=no -i /tmp/terraform-key.pem \
+              -o ProxyCommand="ssh -W %h:%p -i /tmp/terraform-key.pem ec2-user@$BASTION_HOST" \
+              ec2-user@$host \
+              'sudo rm -rf /var/www/html/* &&
+               sudo cp -r /codebuild/output/src*/src/* /var/www/html/ &&
+               sudo systemctl restart nginx'
         done
