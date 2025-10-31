@@ -5,16 +5,28 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - apt-get update -y
-      - apt-get install -y amazon-ssm-agent jq
+      - apt-get install -y jq openssh-clients
       - composer install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
     commands:
-      - echo "Deploying to EC2 via SSM..."
-      - INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=app-server-prod-1a,app-server-prod-1c" --query "Reservations[].Instances[].InstanceId" --output text)
-      - echo "Deploying to instances: $INSTANCE_IDS"
-      - aws ssm send-command --instance-ids $INSTANCE_IDS --document-name "AWS-RunShellScript" --comment "Deploy Laravel app to multiple EC2s" --parameters 'commands=["sudo rm -rf /var/www/html/*", "sudo cp -r . /var/www/html", "sudo systemctl restart nginx"]'
+      - echo "Deploying via SSH (bastion -> app EC2)..."
+      # Secrets Manager から秘密鍵を取得
+      - aws secretsmanager get-secret-value --secret-id <SSH_SECRET_ARN> --query SecretString --output text > /tmp/terraform-key.pem
+      - chmod 600 /tmp/terraform-key.pem
 
-artifacts:
-  files:
-    - '**/*'
+      # 環境変数に各ホスト設定
+      - BASTION_HOST=<35.78.99.253>
+      - APP_HOSTS="10.0.2.18 10.0.4.25"
+
+      # SSH踏み台経由でアプリEC2にデプロイ
+      - |
+        for host in $APP_HOSTS; do
+          echo "Deploying to $host via bastion $BASTION_HOST"
+          ssh -o StrictHostKeyChecking=no -i /tmp/terraform-key.pem -A ec2-user@$BASTION_HOST \
+            "ssh -o StrictHostKeyChecking=no ec2-user@$host '
+              sudo rm -rf /var/www/html/* &&
+              sudo cp -r /codebuild/output/src*/src/* /var/www/html/ &&
+              sudo systemctl restart nginx
+            '"
+        done
