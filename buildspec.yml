@@ -5,8 +5,9 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - apt-get update -y
-      - apt-get install -y jq openssh-client
-      - composer install --no-interaction --prefer-dist --optimize-autoloader
+      - apt-get install -y jq openssh-client php-cli
+      - curl -sS https://getcomposer.org/installer | php
+      - php composer.phar install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
     commands:
