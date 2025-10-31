@@ -16,7 +16,7 @@ phases:
       - chmod 600 /tmp/terraform-key.pem
 
       # 環境変数に各ホスト設定
-      - BASTION_HOST=<35.78.99.253>
+      - BASTION_HOST=ec2-35-78-99-253.ap-northeast-1.compute.amazonaws.com
       - APP_HOSTS="10.0.2.18 10.0.4.25"
 
       # SSH踏み台経由でアプリEC2にデプロイ
