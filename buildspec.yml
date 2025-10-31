@@ -5,7 +5,7 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - apt-get update -y
-      - apt-get install -y jq openssh-clients
+      - apt-get install -y jq openssh-client
       - composer install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
