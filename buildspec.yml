@@ -12,7 +12,7 @@ phases:
     commands:
       - echo "Deploying via SSH (bastion -> app EC2)..."
       # Secrets Manager から秘密鍵を取得
-      - aws secretsmanager get-secret-value --secret-id <SSH_SECRET_ARN> --query SecretString --output text > /tmp/terraform-key.pem
+      - aws secretsmanager get-secret-value --secret-id ${SECRET_SSH_KEY_ARN} --query SecretString --output text > /tmp/terraform-key.pem
       - chmod 600 /tmp/terraform-key.pem
 
       # 環境変数に各ホスト設定
