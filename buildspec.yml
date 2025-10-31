@@ -13,11 +13,7 @@ phases:
       - echo "Deploying via SSH (bastion -> app EC2)..."
       # Secrets Manager から秘密鍵を取得、改行を復元してPEMとして保存
       - echo "Fetching SSH key from Secrets Manager..."
-      - SECRET=$(aws secretsmanager get-secret-value \
-          --region ap-northeast-1 \
-          --secret-id ${SECRET_SSH_KEY_ARN} \
-          --query SecretString \
-          --output text)
+      - SECRET=$(aws secretsmanager get-secret-value --region ap-northeast-1 --secret-id "$SECRET_SSH_KEY_ARN" --query SecretString --output text)
       - echo "$SECRET" | sed 's/\\n/\n/g' > /tmp/terraform-key.pem
       - chmod 600 /tmp/terraform-key.pem
       - head -2 /tmp/terraform-key.pem  #安全確認: BEGIN行が出ればOK
