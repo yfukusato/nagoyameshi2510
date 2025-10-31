@@ -5,27 +5,16 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - apt-get update -y
-      - apt-get install -y jq openssh-client php-cli
+      - apt-get install -y jq php-cli
       - curl -sS https://getcomposer.org/installer | php
       - php composer.phar install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
     commands:
-      - echo "Fetching SSH key from Secrets Manager..."
-      - aws secretsmanager get-secret-value --region ap-northeast-1 --secret-id ${SECRET_SSH_KEY_ARN} --query SecretString --output text > /tmp/terraform-key.pem
-      - chmod 600 /tmp/terraform-key.pem
-      - BASTION_HOST=10.0.1.126
-      - APP_HOSTS="10.0.2.18"
-      - echo "Deploying to $APP_HOSTS via bastion $BASTION_HOST"
-      - mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
-      - ssh-keyscan -H $BASTION_HOST >> ~/.ssh/known_hosts
-      - ssh-keyscan -H $APP_HOSTS >> ~/.ssh/known_hosts
-      - |
-        for host in $APP_HOSTS; do
-          ssh -o StrictHostKeyChecking=yes -i /tmp/terraform-key.pem \
-              -o ProxyCommand="ssh -W %h:%p -i /tmp/terraform-key.pem ec2-user@$BASTION_HOST" \
-              ec2-user@$host \
-              'sudo rm -rf /var/www/html/* &&
-               sudo cp -r /codebuild/output/src*/src/* /var/www/html/ &&
-               sudo systemctl restart nginx'
-        done
+      - echo "✅ Build phase complete — skipping SSH deploy for now (submission mode)"
+      - echo "Artifacts will be uploaded to S3 if defined below."
+
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
