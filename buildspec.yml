@@ -13,7 +13,7 @@ phases:
       - echo "Fetching SSH key from Secrets Manager..."
       - aws secretsmanager get-secret-value --region ap-northeast-1 --secret-id ${SECRET_SSH_KEY_ARN} --query SecretString --output text > /tmp/terraform-key.pem
       - chmod 600 /tmp/terraform-key.pem
-      - BASTION_HOST=52.194.104.224
+      - BASTION_HOST=ec2-52-194-104-224.ap-northeast-1.compute.amazonaws.com
       - APP_HOSTS="10.0.2.18"
       - echo "Deploying to $APP_HOSTS via bastion $BASTION_HOST"
       - |
