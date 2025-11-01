@@ -4,7 +4,8 @@ phases:
   install:
     commands:
       - echo "Installing dependencies..."
-      - yum install -y rsync openssh-clients
+      - apt-get update -y
+      - apt-get install -y rsync openssh-client
       - composer install --no-interaction --prefer-dist --optimize-autoloader
       - echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
       - chmod 600 /tmp/id_rsa
