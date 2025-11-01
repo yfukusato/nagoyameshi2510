@@ -5,10 +5,11 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - apt-get update -y
-      - apt-get install -y rsync openssh-client
-      - composer install --no-interaction --prefer-dist --optimize-autoloader
-      - echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
+      - apt-get install -y jq rsync openssh-client
+      - echo "Fetching private key from Secrets Manager..."
+      - aws secretsmanager get-secret-value --secret-id $SECRET_SSH_KEY_ARN --query SecretString --output text > /tmp/id_rsa
       - chmod 600 /tmp/id_rsa
+      - composer install --no-interaction --prefer-dist --optimize-autoloader
 
   build:
     commands:
