@@ -4,17 +4,13 @@ phases:
   install:
     commands:
       - echo "Installing dependencies..."
-      - apt-get update -y
-      - apt-get install -y jq php-cli
-      - curl -sS https://getcomposer.org/installer | php
-      - php composer.phar install --no-interaction --prefer-dist --optimize-autoloader
+      - yum install -y rsync openssh-clients
+      - composer install --no-interaction --prefer-dist --optimize-autoloader
+      - echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
+      - chmod 600 /tmp/id_rsa
 
   build:
     commands:
-      - echo "✅ Build phase complete — skipping SSH deploy for now (submission mode)"
-      - echo "Artifacts will be uploaded to S3 if defined below."
-
-artifacts:
-  files:
-    - '**/*'
-  discard-paths: yes
+      - echo "Deploying via SSH..."
+      - rsync -avz -e "ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no" ./ ec2-user@10.0.2.18:/var/www/html/
+      - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@10.0.2.18 "sudo systemctl restart nginx php-fpm"
