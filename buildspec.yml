@@ -11,6 +11,9 @@ phases:
 
   build:
     commands:
-      - echo "Deploying via SSH..."
-      - rsync -avz -e "ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no" ./ ec2-user@10.0.2.18:/var/www/html/
-      - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@10.0.2.18 "sudo systemctl restart nginx php-fpm"
+      - echo "Deploying to both EC2 instances via SSH..."
+      - for HOST in 10.0.2.18 10.0.5.56; do
+          echo "Deploying to $HOST";
+          rsync -avz -e "ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no" ./ ec2-user@$HOST:/var/www/html/;
+          ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@$HOST "sudo systemctl restart nginx php-fpm";
+        done
